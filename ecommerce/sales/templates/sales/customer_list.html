@@ -1,0 +1,30 @@
+{% extends "sales/base.html" %}
+{% load static %}
+
+{% block title %}Покупатели{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Зарегистрированные покупатели</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Название</th>
+                <th>Адрес</th>
+                <th>Телефон</th>
+                <th>Контактное лицо</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for customer in customers %}
+            <tr>
+                <td>{{ customer.name }}</td>
+                <td>{{ customer.address }}</td>
+                <td>{{ customer.phone }}</td>
+                <td>{{ customer.contact_person }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

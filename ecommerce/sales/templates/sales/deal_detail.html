@@ -1,0 +1,37 @@
+{% extends "sales/base.html" %}
+{% load static %}
+
+{% block title %}Сделка #{{ deal.id }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Сделка от {{ deal.date|date:"d.m.Y" }}</h2>
+    <div class="deal-info">
+        <p>Покупатель: {{ deal.customer.name }}</p>
+        <p>Тип: {% if deal.is_wholesale %}Оптовая{% else %}Розничная{% endif %}</p>
+        <p>Скидка: {{ deal.discount }}%</p>
+        <h3>Состав сделки:</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Товар</th>
+                    <th>Количество</th>
+                    <th>Цена за ед.</th>
+                    <th>Сумма</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in deal.dealitem_set.all %}
+                <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.price|floatformat:2 }} ₽</td>
+                    <td>{{ item.subtotal|floatformat:2 }} ₽</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <h4>Итого: {{ deal.total|floatformat:2 }} ₽</h4>
+    </div>
+</div>
+{% endblock %}

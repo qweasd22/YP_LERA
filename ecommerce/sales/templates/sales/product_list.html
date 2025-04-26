@@ -1,0 +1,30 @@
+{% extends "sales/base.html" %}
+{% load static %}
+
+{% block title %}Список товаров{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Каталог товаров</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Наименование</th>
+                <th>Оптовая цена</th>
+                <th>Розничная цена</th>
+                <th>Описание</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td>{{ product.name }}</td>
+                <td>{{ product.wholesale_price }} ₽</td>
+                <td>{{ product.retail_price }} ₽</td>
+                <td>{{ product.description|truncatechars:50 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

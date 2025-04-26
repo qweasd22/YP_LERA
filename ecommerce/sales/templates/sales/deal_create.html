@@ -1,0 +1,65 @@
+{% extends "sales/base.html" %}
+{% load static %}
+
+{% block title %}Новая сделка{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Оформление сделки</h2>
+    <form method="post" id="deal-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label>Покупатель:</label>
+            <select name="customer" required>
+                {% for customer in customers %}
+                <option value="{{ customer.id }}">{{ customer.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Тип продажи:</label>
+            <label>
+                <input type="checkbox" name="is_wholesale"> Оптовая
+            </label>
+        </div>
+
+        <div class="form-group">
+            <label>Скидка (%):</label>
+            <input type="number" name="discount" min="0" max="100" step="0.1" value="0">
+        </div>
+
+        <h3>Товары в сделке</h3>
+        <div id="items-container">
+            <div class="item-row">
+                <select name="product" required>
+                    {% for product in products %}
+                    <option value="{{ product.id }}">{{ product.name }}</option>
+                    {% endfor %}
+                </select>
+                <input type="number" name="quantity" min="1" value="1" required>
+                <button type="button" class="remove-item">×</button>
+            </div>
+        </div>
+        
+        <button type="button" id="add-item">Добавить товар</button>
+        <button type="submit">Сохранить сделку</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('add-item').addEventListener('click', () => {
+        const container = document.getElementById('items-container');
+        const newRow = container.firstElementChild.cloneNode(true);
+        newRow.querySelectorAll('input').forEach(input => input.value = '');
+        container.appendChild(newRow);
+    });
+
+    document.addEventListener('click', (e) => {
+        if(e.target.classList.contains('remove-item')) {
+            e.target.parentElement.remove();
+        }
+    });
+</script>
+{% endblock %}
