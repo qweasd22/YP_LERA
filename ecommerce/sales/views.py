@@ -38,3 +38,12 @@ class DealListView(generics.ListAPIView):
     serializer_class = DealSerializer
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+
+from rest_framework import generics
+from .serializers import DealCreateSerializer
+
+class DealCreateView(generics.CreateAPIView):
+    queryset = Deal.objects.all()
+    serializer_class = DealCreateSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]

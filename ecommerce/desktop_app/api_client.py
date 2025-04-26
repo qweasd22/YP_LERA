@@ -19,25 +19,54 @@ class APIClient:
             print(f"Ошибка авторизации: {e}")
             return False
 
-    def get_products(self) -> List[Dict]:
-        return self.get_data("products/")  # Передача endpoint
-
-    def get_customers(self) -> List[Dict]:
-        return self.get_data("customers/")  # Передача endpoint
-
-    def get_data(self, endpoint: str) -> List[Dict]:
+    def _get(self, endpoint: str) -> List[Dict]:
         headers = {"Authorization": f"Token {self.token}"} if self.token else {}
         try:
             response = requests.get(f"{self.base_url}{endpoint}", headers=headers)
             response.raise_for_status()
             return response.json()
         except Exception as e:
-            print(f"Ошибка получения данных: {e}")
+            print(f"Ошибка: {e}")
             return []
-        
+
+    def get_products(self) -> List[Dict]:
+        return self._get("api/products/")
+
+    def get_customers(self) -> List[Dict]:
+        return self._get("api/customers/")
+
     def get_deals(self) -> List[Dict]:
+        return self._get("api/deals/")
+
+    def create_deal(self, data: Dict) -> bool:
+        headers = {"Authorization": f"Token {self.token}"}
         try:
-            return self.get_data("deals/")
+            response = requests.post(
+                f"{self.base_url}api/deals/",
+                json=data,
+                headers=headers
+            )
+            return response.status_code == 201
         except Exception as e:
-            print(f"Ошибка получения сделок: {e}")
-            return []
+            print(f"Ошибка: {e}")
+            return False
+        
+    def create_customer(self, name: str, address: str, phone: str, contact_person: str) -> bool:
+        """Создание нового покупателя"""
+        data = {
+            "name": name,
+            "address": address,
+            "phone": phone,
+            "contact_person": contact_person
+        }
+        headers = {"Authorization": f"Token {self.token}"}
+        try:
+            response = requests.post(
+                f"{self.base_url}api/customers/",
+                json=data,
+                headers=headers
+            )
+            return response.status_code == 201
+        except Exception as e:
+            print(f"Ошибка: {e}")
+            return False

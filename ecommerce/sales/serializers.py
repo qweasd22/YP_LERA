@@ -12,7 +12,10 @@ from .models import Deal, Customer
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
-        fields = ['id', 'name', 'address', 'phone', 'contact_person']
+        fields = ['name', 'address', 'phone', 'contact_person']
+
+class DealSerializer(serializers.ModelSerializer):
+    customer = CustomerSerializer()
 
 from rest_framework import serializers
 from .models import Deal, DealItem
@@ -24,20 +27,25 @@ class DealItemSerializer(serializers.ModelSerializer):
 
 class DealSerializer(serializers.ModelSerializer):
     items = DealItemSerializer(many=True, read_only=True)
-    customer = serializers.StringRelatedField()  # Отображает имя клиента
-
+    
+    customer_name = serializers.CharField(source='customer.name', read_only=True)
     class Meta:
         model = Deal
-        fields = ["id", "date", "customer", "is_wholesale", "discount", "total", "items"]
+        fields = ["id", "date", "is_wholesale", "discount", "total", "items", "customer_name"]
 
 
     
+    
+    
+class DealCreateSerializer(serializers.ModelSerializer):
+    items = DealItemSerializer(many=True)
+
     class Meta:
         model = Deal
-        fields = ['id', 'date', 'customer', 'is_wholesale', 'discount', 'items']
-    
+        fields = ["customer", "is_wholesale", "discount", "items"]
+
     def create(self, validated_data):
-        items_data = validated_data.pop('items')
+        items_data = validated_data.pop("items")
         deal = Deal.objects.create(**validated_data)
         for item_data in items_data:
             DealItem.objects.create(deal=deal, **item_data)

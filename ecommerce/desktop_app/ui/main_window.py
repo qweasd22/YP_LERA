@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QMainWindow, QTabWidget
 from .widgets.products import ProductsWidget
+from .widgets.customers import CustomersWidget
 from .widgets.deals import DealsWidget
-from .widgets.customres import CustomersWidget
 
 class MainWindow(QMainWindow):
     def __init__(self, api_client):
@@ -9,6 +9,7 @@ class MainWindow(QMainWindow):
         self.api_client = api_client
         self.setWindowTitle("Управление продажами")
         self.setGeometry(100, 100, 1200, 800)
+        
         
         # Вкладки
         self.tabs = QTabWidget()
