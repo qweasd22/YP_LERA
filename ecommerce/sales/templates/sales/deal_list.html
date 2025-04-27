@@ -1,0 +1,33 @@
+
+{% extends "sales/base.html" %}
+{% load static %}
+
+{% block title %}Список сделок{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Список сделок</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Покупатель</th>
+                <th>Тип</th>
+                <th>Сумма</th>
+                <th>Скидка</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for deal in deals %}
+            <tr>
+                <td>{{ deal.date|date:"d.m.Y" }}</td>
+                <td>{{ deal.customer.name }}</td>
+                <td>{% if deal.is_wholesale %}Оптовая{% else %}Розничная{% endif %}</td>
+                <td>{{ deal.total|floatformat:2 }} ₽</td>
+                <td>{{ deal.discount }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

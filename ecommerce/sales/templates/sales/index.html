@@ -1,0 +1,35 @@
+{% extends "sales/base.html" %}
+{% load static %}
+
+{% block title %}Главная страница{% endblock %}
+
+{% block content %}
+<div class="index-container">
+    <h1>Система управления продажами</h1>
+    <div class="description">
+        <p>Добро пожаловать в систему для управления товарами, покупателями и сделками вашей компании.</p>
+        <p>Основные возможности:</p>
+        <ul>
+            <li>Управление каталогом товаров</li>
+            <li>Ведение базы покупателей</li>
+            <li>Оформление и отслеживание сделок</li>
+            <li>Автоматический расчет скидок</li>
+        </ul>
+    </div>
+
+    <div class="navigation-buttons">
+        <a href="{% url 'product_list' %}" class="nav-btn">
+            <img src="{% static 'sales/icons/products.png' %}" alt="Товары">
+            Товары
+        </a>
+        <a href="{% url 'customer_list' %}" class="nav-btn">
+            <img src="{% static 'sales/icons/customers.png' %}" alt="Покупатели">
+            Покупатели
+        </a>
+        <a href="{% url 'deal_list' %}" class="nav-btn">
+            <img src="{% static 'sales/icons/deals.png' %}" alt="Сделки">
+            Сделки
+        </a>
+    </div>
+</div>
+{% endblock %}

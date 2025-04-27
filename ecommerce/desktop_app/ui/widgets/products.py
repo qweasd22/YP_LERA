@@ -1,5 +1,5 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem, QHeaderView
-
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem, QHeaderView, QPushButton
+from ..dialogs.new_products import NewProductDialog
 class ProductsWidget(QWidget):
     def __init__(self, api_client):
         super().__init__()
@@ -8,6 +8,15 @@ class ProductsWidget(QWidget):
         self.init_ui()
         self.load_data()
 
+        self.show_create_dialog_btn = QPushButton("Создать товар")
+        self.show_create_dialog_btn.clicked.connect(self.show_create_dialog)
+        self.layout.addWidget(self.show_create_dialog_btn)
+
+        self.setLayout(self.layout)
+
+    def show_create_dialog(self):
+        dialog = NewProductDialog(self.api_client)
+        dialog.exec()
     def init_ui(self):
         self.table = QTableWidget()
         self.table.setColumnCount(4)

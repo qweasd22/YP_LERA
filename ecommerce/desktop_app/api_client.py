@@ -70,3 +70,17 @@ class APIClient:
         except Exception as e:
             print(f"Ошибка: {e}")
             return False
+        
+    def create_product(self, data: dict) -> bool:
+        headers = {"Authorization": f"Token {self.token}"}
+        try:
+            response = requests.post(
+                f"{self.base_url}api/products/",
+                json=data,
+                headers=headers,
+                timeout=5
+            )
+            return response.status_code == 201
+        except Exception as e:
+            print(f"Ошибка создания товара: {e}")
+            return False

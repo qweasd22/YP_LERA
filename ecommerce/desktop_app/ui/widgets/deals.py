@@ -18,11 +18,10 @@ class DealsWidget(QWidget):
         ])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         
-        self.new_deal_btn = QPushButton("Новая сделка")
-        self.new_deal_btn.clicked.connect(self.show_create_dialog)
+        
         
         self.layout.addWidget(self.table)
-        self.layout.addWidget(self.new_deal_btn)
+        
         self.setLayout(self.layout)
 
     def load_data(self):
@@ -35,6 +34,7 @@ class DealsWidget(QWidget):
             deal_type = "Опт" if deal.get("is_wholesale", False) else "Розница"
             total = f"{deal.get('total', 0):.2f} ₽"
             status = "Завершена" if deal.get("is_completed", False) else "В процессе"
+            
             
             customer_name = deal.get("customer_name", "")
             self.table.setItem(row, 0, QTableWidgetItem(date))

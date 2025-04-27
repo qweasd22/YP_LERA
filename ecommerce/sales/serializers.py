@@ -27,11 +27,21 @@ class DealItemSerializer(serializers.ModelSerializer):
 
 class DealSerializer(serializers.ModelSerializer):
     items = DealItemSerializer(many=True, read_only=True)
-    
     customer_name = serializers.CharField(source='customer.name', read_only=True)
+    money = serializers.SerializerMethodField()
+    total = serializers.SerializerMethodField()
+
+    def get_total(self, obj):
+        return obj.total
+    def get_money(self, obj):
+        return obj.total
     class Meta:
         model = Deal
-        fields = ["id", "date", "is_wholesale", "discount", "total", "items", "customer_name"]
+        fields = '__all__'
+
+    
+
+    
 
 
     

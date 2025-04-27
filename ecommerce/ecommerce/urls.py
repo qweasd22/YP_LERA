@@ -19,7 +19,7 @@ from django.urls import path, include
 from sales import views
 from rest_framework import routers
 from sales.api import ProductViewSet, CustomerViewSet, DealViewSet, DealItemViewSet
-from sales.views import DealListView, DealCreateView
+from sales.views import DealListView, DealCreateView, deal_list
 router = routers.DefaultRouter()
 router.register(r'products', ProductViewSet)
 router.register(r'customers', CustomerViewSet)
@@ -34,14 +34,15 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('products/', views.product_list, name='product_list'),
     path('customers/', views.customer_list, name='customer_list'),
-    path('deals/new/', views.deal_create, name='deal_create'),
+    path('deals/new/', views.create_deal, name='deal_create'),
     path('deals/<int:pk>/', views.deal_detail, name='deal_detail'),
     path('api/', include(router.urls)),
     path('api-token-auth/', obtain_auth_token, name='api_token_auth'),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    path('deals/', DealListView.as_view(), name='deal_list'),
+    path('deals/', deal_list, name='deal_list'),
     path("api/deals/", DealListView.as_view(), name="deal-list"),
     path("api/deals/", DealCreateView.as_view(), name="deal-create"),
+    path('index', views.index, name='index'),
 
     
 
