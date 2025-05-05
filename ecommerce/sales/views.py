@@ -4,9 +4,9 @@ from .models import Product, Customer, Deal, DealItem
 from .forms import DealForm, DealItemFormSet
 from django.shortcuts import redirect
 
-def product_list(request):
-    products = Product.objects.all()
-    return render(request, 'sales/product_list.html', {'products': products})
+from django.core.paginator import Paginator
+
+
 
 def customer_list(request):
     customers = Customer.objects.all()
@@ -82,3 +82,42 @@ def add_customer(request):
     else:
         form = CustomerForm()
     return render(request, 'sales/add_customer.html', {'form': form})
+
+from django.shortcuts import render, redirect
+from .models import Product
+from .forms import ProductForm  # Нужно будет создать форму
+
+def product_list(request):
+    products = Product.objects.all()
+    return render(request, 'sales/product_list.html', {'products': products})
+
+# Добавление товара
+def product_create(request):
+    if request.method == 'POST':
+        form = ProductForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('product_list')
+    else:
+        form = ProductForm()
+    return render(request, 'sales/product_form.html', {'form': form, 'title': 'Добавить товар'})
+
+# Редактирование товара
+def product_edit(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+        form = ProductForm(request.POST, instance=product)
+        if form.is_valid():
+            form.save()
+            return redirect('product_list')
+    else:
+        form = ProductForm(instance=product)
+    return render(request, 'sales/product_form.html', {'form': form, 'title': 'Редактировать товар'})
+
+# Удаление товара
+def product_delete(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+        product.delete()
+        return redirect('product_list')
+    return render(request, 'sales/product_confirm_delete.html', {'product': product})

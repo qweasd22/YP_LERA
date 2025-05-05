@@ -3,84 +3,74 @@ from typing import List, Dict, Optional
 
 class APIClient:
     def __init__(self, base_url: str = "http://localhost:18800/"):
-        self.base_url = base_url
+        self.base_url = base_url.rstrip("/") + "/"
         self.token: Optional[str] = None
 
     def login(self, username: str, password: str) -> bool:
         try:
-            response = requests.post(
+            resp = requests.post(
                 f"{self.base_url}api-token-auth/",
-                data={"username": username, "password": password}
-            )
-            response.raise_for_status()
-            self.token = response.json().get("token")
-            return True
-        except Exception as e:
-            print(f"Ошибка авторизации: {e}")
-            return False
-
-    def _get(self, endpoint: str) -> List[Dict]:
-        headers = {"Authorization": f"Token {self.token}"} if self.token else {}
-        try:
-            response = requests.get(f"{self.base_url}{endpoint}", headers=headers)
-            response.raise_for_status()
-            return response.json()
-        except Exception as e:
-            print(f"Ошибка: {e}")
-            return []
-
-    def get_products(self) -> List[Dict]:
-        return self._get("api/products/")
-
-    def get_customers(self) -> List[Dict]:
-        return self._get("api/customers/")
-
-    def get_deals(self) -> List[Dict]:
-        return self._get("api/deals/")
-
-    def create_deal(self, data: Dict) -> bool:
-        headers = {"Authorization": f"Token {self.token}"}
-        try:
-            response = requests.post(
-                f"{self.base_url}api/deals/",
-                json=data,
-                headers=headers
-            )
-            return response.status_code == 201
-        except Exception as e:
-            print(f"Ошибка: {e}")
-            return False
-        
-    def create_customer(self, name: str, address: str, phone: str, contact_person: str) -> bool:
-        """Создание нового покупателя"""
-        data = {
-            "name": name,
-            "address": address,
-            "phone": phone,
-            "contact_person": contact_person
-        }
-        headers = {"Authorization": f"Token {self.token}"}
-        try:
-            response = requests.post(
-                f"{self.base_url}api/customers/",
-                json=data,
-                headers=headers
-            )
-            return response.status_code == 201
-        except Exception as e:
-            print(f"Ошибка: {e}")
-            return False
-        
-    def create_product(self, data: dict) -> bool:
-        headers = {"Authorization": f"Token {self.token}"}
-        try:
-            response = requests.post(
-                f"{self.base_url}api/products/",
-                json=data,
-                headers=headers,
+                data={"username": username, "password": password},
                 timeout=5
             )
-            return response.status_code == 201
+            resp.raise_for_status()
+            self.token = resp.json().get("token")
+            return True
         except Exception as e:
-            print(f"Ошибка создания товара: {e}")
+            print("Login error:", e)
             return False
+
+    def _headers(self) -> Dict[str, str]:
+        return {"Authorization": f"Token {self.token}"} if self.token else {}
+
+    def _get(self, endpoint: str) -> List[Dict]:
+        try:
+            resp = requests.get(f"{self.base_url}api/{endpoint}", headers=self._headers(), timeout=5)
+            resp.raise_for_status()
+            return resp.json()
+        except Exception as e:
+            print(f"GET {endpoint} error:", e)
+            return []
+
+    def _post(self, endpoint: str, data: Dict) -> Optional[Dict]:
+        try:
+            resp = requests.post(f"{self.base_url}api/{endpoint}", json=data, headers=self._headers(), timeout=5)
+            resp.raise_for_status()
+            return resp.json()
+        except Exception as e:
+            print(f"POST {endpoint} error:", e)
+            return None
+
+    def _put(self, endpoint: str, obj_id: int, data: Dict) -> bool:
+        try:
+            resp = requests.put(f"{self.base_url}api/{endpoint}{obj_id}/", json=data, headers=self._headers(), timeout=5)
+            resp.raise_for_status()
+            return True
+        except Exception as e:
+            print(f"PUT {endpoint} error:", e)
+            return False
+
+    def _delete(self, endpoint: str, obj_id: int) -> bool:
+        try:
+            resp = requests.delete(f"{self.base_url}api/{endpoint}{obj_id}/", headers=self._headers(), timeout=5)
+            resp.raise_for_status()
+            return True
+        except Exception as e:
+            print(f"DELETE {endpoint} error:", e)
+            return False
+
+    # Products
+    def get_products(self):   return self._get("products/")
+    def create_product(self, data): return self._post("products/", data)
+    def update_product(self, pk, data): return self._put("products/", pk, data)
+    def delete_product(self, pk): return self._delete("products/", pk)
+
+    # Customers
+    def get_customers(self):   return self._get("customers/")
+    def create_customer(self, data): return self._post("customers/", data)
+    def update_customer(self, pk, data): return self._put("customers/", pk, data)
+    def delete_customer(self, pk): return self._delete("customers/", pk)
+
+    # Deals
+    def get_deals(self):   return self._get("deals/")
+    def create_deal(self, data): return self._post("deals/", data)

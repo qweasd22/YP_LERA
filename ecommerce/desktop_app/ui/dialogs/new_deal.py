@@ -1,84 +1,56 @@
-from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QLabel, QComboBox, 
-    QLineEdit, QPushButton, QMessageBox, QCheckBox
-)
-from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QDialog, QFormLayout, QComboBox, QLineEdit, QCheckBox, QPushButton, QMessageBox
+from api_client import APIClient
 
 class NewDealDialog(QDialog):
-    def __init__(self, api_client):
+    def __init__(self, api: APIClient):
         super().__init__()
-        self.api_client = api_client
+        self.api = api
         self.setWindowTitle("Новая сделка")
-        self.setMinimumWidth(400)
-        self.layout = QVBoxLayout()
-        
-        # Элементы формы
-        self.customer_combo = QComboBox()
-        self.product_combo = QComboBox()
-        self.quantity_input = QLineEdit()
-        self.is_wholesale_check = QCheckBox("Оптовая сделка")
-        
-        # Загрузка данных
-        self.load_customers()
-        self.load_products()
-        
-        # Кнопки
-        self.submit_btn = QPushButton("Создать")
-        self.submit_btn.clicked.connect(self.create_deal)
-        
-        # Сборка интерфейса
-        self.layout.addWidget(QLabel("Покупатель:"))
-        self.layout.addWidget(self.customer_combo)
-        self.layout.addWidget(QLabel("Товар:"))
-        self.layout.addWidget(self.product_combo)
-        self.layout.addWidget(QLabel("Количество:"))
-        self.layout.addWidget(self.quantity_input)
-        self.layout.addWidget(self.is_wholesale_check)
-        self.layout.addWidget(self.submit_btn)
-        
-        self.setLayout(self.layout)
+        form = QFormLayout(self)
 
-    def load_customers(self):
-        """Загрузка списка покупателей"""
-        customers = self.api_client.get_customers()
-        self.customer_combo.clear()
-        for customer in customers:
-            self.customer_combo.addItem(customer["name"], customer["id"])
+        self.customer = QComboBox(); form.addRow("Покупатель:", self.customer)
+        self.product = QComboBox(); form.addRow("Товар:", self.product)
+        self.quantity = QLineEdit("1"); form.addRow("Количество:", self.quantity)
+        self.is_wholesale = QCheckBox(); form.addRow("Оптовая сделка:", self.is_wholesale)
 
-    def load_products(self):
-        """Загрузка списка товаров"""
-        products = self.api_client.get_products()
-        self.product_combo.clear()
-        for product in products:
-            self.product_combo.addItem(product["name"], product["id"])
+        btn = QPushButton("Создать")
+        btn.clicked.connect(self._create)
+        form.addRow(btn)
 
-    def validate_input(self) -> bool:
-        """Проверка корректности ввода"""
-        if not self.quantity_input.text().isdigit():
-            QMessageBox.warning(self, "Ошибка", "Количество должно быть числом!")
-            return False
-        if int(self.quantity_input.text()) <= 0:
-            QMessageBox.warning(self, "Ошибка", "Количество должно быть больше нуля!")
-            return False
-        return True
+        self._load_customers(); self._load_products()
 
-    def create_deal(self):
-        """Отправка данных на сервер"""
-        if not self.validate_input():
+    def _load_customers(self):
+        for c in self.api.get_customers():
+            self.customer.addItem(c.get('name',''), c.get('id'))
+
+    def _load_products(self):
+        for p in self.api.get_products():
+            self.product.addItem(p.get('name',''), p.get('id'))
+
+    def _create(self):
+        try:
+            qty = int(self.quantity.text())
+            if qty < 1: raise ValueError
+        except:
+            QMessageBox.warning(self, "Ошибка", "Количество должно быть числом >0")
             return
-
         data = {
-            "customer": self.customer_combo.currentData(),
-            "items": [{
-                "product": self.product_combo.currentData(),
-                "quantity": int(self.quantity_input.text())
-            }],
-            "is_wholesale": self.is_wholesale_check.isChecked(),
-            "discount": 0  # Пример, можно добавить поле для скидки
+            'customer': self.customer.currentData(),
+            'is_wholesale': self.is_wholesale.isChecked(),
+            'discount': 0,
+            'items': [{'product': self.product.currentData(), 'quantity': qty}]
         }
+        # скидка по порогам
+        if qty >= 1000:
+            data['discount'] = 20
+        elif qty >= 100:
+            data['discount'] = 10
+        elif qty >= 10:
+            data['discount'] = 5
 
-        if self.api_client.create_deal(data):
-            QMessageBox.information(self, "Успех", "Сделка создана!")
+        res = self.api.create_deal(data)
+        if res:
+            QMessageBox.information(self, "Успех", "Сделка создана")
             self.accept()
         else:
-            QMessageBox.critical(self, "Ошибка", "Не удалось создать сделку!")
+            QMessageBox.critical(self, "Ошибка", "Не удалось создать сделку")

@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     "corsheaders",
+    'django.contrib.humanize',
 ]
 
 REST_FRAMEWORK = {
@@ -68,6 +69,12 @@ ROOT_URLCONF = 'ecommerce.urls'
 
 TEMPLATES_DIR = BASE_DIR / 'templates'
 STATIC_URL = "static/"
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+                
+]
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 TEMPLATES = [
     {

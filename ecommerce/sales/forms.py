@@ -35,3 +35,14 @@ class CustomerForm(forms.ModelForm):
         model = Customer
         fields = ['name', 'address', 'phone', 'contact_person'] 
         
+from django import forms
+from .models import Product
+
+class ProductForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = ['name', 'price']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Введите наименование'}),
+            'price': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Введите цену'}),
+        }
