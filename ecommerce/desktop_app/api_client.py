@@ -73,6 +73,19 @@ class APIClient:
 
     # Deals
     def get_deals(self):            return self._get("deals/")
-    def create_deal(self, d):       return self._post("deals/", d)
+    def create_deal(self, data):
+        url = f"{self.base_url}deals/new/"
+        headers = {"Authorization": f"Token {self.token}", "Content-Type": "application/json"}
+        try:
+            response = requests.post(url, json=data, headers=headers)
+            if response.status_code == 201:
+                print("Сделка создана успешно")
+                return True
+            else:
+                print(f"Ошибка при создании сделки: {response.status_code} {response.text}")
+                return False
+        except requests.exceptions.RequestException as e:
+            print(f"Ошибка запроса: {e}")
+            return False
     def update_deal(self, pk, d):   return self._put("deals/", pk, d)
     def delete_deal(self, pk):      return self._delete("deals/", pk)

@@ -1,32 +1,90 @@
-from PyQt6.QtWidgets import QDialog, QFormLayout, QComboBox, QLineEdit, QCheckBox, QPushButton, QMessageBox
+from urllib import response
+from PyQt6.QtWidgets import (
+    QDialog, QVBoxLayout, QLabel, QComboBox, 
+    QLineEdit, QPushButton, QMessageBox, QCheckBox
+)
+from PyQt6.QtCore import Qt
 
 class NewDealDialog(QDialog):
-    def __init__(self, api):
+    def __init__(self, api_client):
         super().__init__()
-        self.api = api
+        self.api_client = api_client
+        self.api = api_client
         self.setWindowTitle("Новая сделка")
-        form = QFormLayout(self)
+        self.setMinimumWidth(400)
+        self.layout = QVBoxLayout()
+        
+        # Элементы формы
+        self.customer_combo = QComboBox()
+        self.product_combo = QComboBox()
+        self.quantity_input = QLineEdit()
+        self.is_wholesale_check = QCheckBox("Оптовая сделка")
+        
+        # Загрузка данных
+        self.load_customers()
+        self.load_products()
+        
+        # Кнопки
+        self.submit_btn = QPushButton("Создать")
+        self.submit_btn.clicked.connect(self.create_deal)
+        
+        # Сборка интерфейса
+        self.layout.addWidget(QLabel("Покупатель:"))
+        self.layout.addWidget(self.customer_combo)
+        self.layout.addWidget(QLabel("Товар:"))
+        self.layout.addWidget(self.product_combo)
+        self.layout.addWidget(QLabel("Количество:"))
+        self.layout.addWidget(self.quantity_input)
+        self.layout.addWidget(self.is_wholesale_check)
+        self.layout.addWidget(self.submit_btn)
+        
+        self.setLayout(self.layout)
 
-        # Загрузка клиентов и товаров
-        self.customer = QComboBox()
-        for c in api.get_customers():
-            self.customer.addItem(c["name"], c["id"])
-        form.addRow("Клиент:", self.customer)
+    def load_customers(self):
+        customers = self.api.get_customers()  # Теперь api доступен
+        for customer in customers:
+            print(customer)  # Для отладки
+            self.customer_combo.addItem(customer["name"], customer.get("id") or customer.get("customer_id"))
 
-        self.product = QComboBox()
-        for p in api.get_products():
-            self.product.addItem(p["name"], p["id"])
-        form.addRow("Товар:", self.product)
 
-        self.quantity = QLineEdit("1")
-        form.addRow("Количество:", self.quantity)
+    def load_products(self):
+        """Загрузка списка товаров"""
+        products = self.api_client.get_products()
+        self.product_combo.clear()
+        for product in products:
+            self.product_combo.addItem(product["name"], product["id"])
 
-        self.is_wholesale = QCheckBox("Оптовая сделка")
-        form.addRow("", self.is_wholesale)
+    def validate_input(self) -> bool:
+        """Проверка корректности ввода"""
+        if not self.quantity_input.text().isdigit():
+            QMessageBox.warning(self, "Ошибка", "Количество должно быть числом!")
+            return False
+        if int(self.quantity_input.text()) <= 0:
+            QMessageBox.warning(self, "Ошибка", "Количество должно быть больше нуля!")
+            return False
+        return True
 
-        btn = QPushButton("Создать")
-        btn.clicked.connect(self._save)
-        form.addRow(btn)
+    def create_deal(self):
+        """Отправка данных на сервер"""
+        if not self.validate_input():
+            return
+
+        data = {
+            "customer": self.customer_combo.currentData(),
+            "items": [{
+                "product": self.product_combo.currentData(),
+                "quantity": int(self.quantity_input.text())
+            }],
+            "is_wholesale": self.is_wholesale_check.isChecked(),
+            "discount": 0  # Пример, можно добавить поле для скидки
+        }
+
+        if self.api_client.create_deal(data):
+            QMessageBox.information(self, "Успех", "Сделка создана!")
+            self.accept()
+            print("Response:", response.status_code, response.text)  # В create_deal
+        else:
+            QMessageBox.critical(self, "Ошибка", "Не удалось создать сделку!")
 
     def _save(self):
         # Валидация
@@ -38,13 +96,17 @@ class NewDealDialog(QDialog):
             return
 
         data = {
-            "customer": self.customer.currentData(),
+            "customer": self.customer.currentData(),  # Получаем ID клиента
             "is_wholesale": self.is_wholesale.isChecked(),
-            "discount": 0,  # сервер сам рассчитает дисконт, либо добавьте логику здесь
             "items": [
-                {"product": self.product.currentData(), "quantity": qty}
-            ]
+        {
+            "product": self.product_combo.currentData(),
+            "quantity": int(self.quantity_input.text())
         }
+    ]
+        }
+
+        print("Отправляемые данные:", data)  # Добавляем вывод для отладки
 
         if self.api.create_deal(data):
             QMessageBox.information(self, "Успех", "Сделка создана")

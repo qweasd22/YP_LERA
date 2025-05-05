@@ -39,7 +39,7 @@ class DealSerializer(serializers.ModelSerializer):
         model = Deal
         fields = '__all__'
 
-
+from django.utils import timezone
     
 class DealCreateSerializer(serializers.ModelSerializer):
     items = DealItemSerializer(many=True)
@@ -49,6 +49,7 @@ class DealCreateSerializer(serializers.ModelSerializer):
         fields = ["customer", "is_wholesale", "discount", "items"]
 
     def create(self, validated_data):
+        validated_data['date'] = timezone.now()
         items_data = validated_data.pop("items")
         deal = Deal.objects.create(**validated_data)
         for item_data in items_data:
