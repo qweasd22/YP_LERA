@@ -28,13 +28,13 @@ router.register(r'deal-items', DealItemViewSet)
 
 from rest_framework.authtoken.views import obtain_auth_token
 
-
+app_name = 'sales'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('products/', views.product_list, name='product_list'),
     path('customers/', views.customer_list, name='customer_list'),
-    path('deals/new/', views.create_deal, name='deal_create'),
+    
     path('deals/<int:pk>/', views.deal_detail, name='deal_detail'),
     path('api/', include(router.urls)),
     path('api-token-auth/', obtain_auth_token, name='api_token_auth'),
@@ -43,9 +43,9 @@ urlpatterns = [
     path("api/deals/", DealListView.as_view(), name="deal-list"),
     path("api/deals/", DealCreateView.as_view(), name="deal-create"),
     path('index', views.index, name='index'),
-
-    
-
-   
+    path('', views.index, name='index'),
+    path('add-customer/', views.add_customer, name='add_customer'),
+    path('', include('sales.urls', namespace='sales')),
+    path('deals/new/', views.deal_create, name='deal_create'),
 
 ]

@@ -1,0 +1,109 @@
+{% extends 'sales/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4">Новая сделка</h2>
+  <form method="post" id="deal-form">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label" for="{{ form.customer.id_for_label }}">Клиент</label>
+      {{ form.customer }}
+    </div>
+
+    <h5>Товары</h5>
+    <div id="items">
+      {{ formset.management_form }}
+      {% for subform in formset %}
+  <div class="row align-items-end mb-3 deal-item">
+    <div class="col">
+      <label class="form-label" for="{{ subform.product.id_for_label }}">Товар</label>
+      <select name="{{ subform.product.html_name }}"
+              id="{{ subform.product.auto_id }}"
+              class="form-select product-select">
+        {% for prod in subform.fields.product.queryset %}
+          <option value="{{ prod.id }}"
+                  data-price="{{ prod.price }}"
+                  {% if subform.instance.product_id == prod.id %}selected{% endif %}>
+            {{ prod.name }} ({{ prod.price }} ₽)
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col">
+      <label class="form-label" for="{{ subform.quantity.id_for_label }}">Количество</label>
+      {{ subform.quantity }}
+    </div>
+    <div class="col-auto">
+      {% if formset.can_delete %}
+        <div class="form-check">
+          {{ subform.DELETE }} <label class="form-check-label">Удалить</label>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endfor %}
+    </div>
+    <button type="button" class="btn btn-outline-secondary mb-3" id="add-item">Добавить товар</button>
+
+    <hr>
+    <p><strong>Всего позиций:</strong> <span id="total-qty">0</span></p>
+    <p><strong>Скидка:</strong> <span id="discount">0%</span></p>
+    <p><strong>Сумма к оплате:</strong> <span id="total-sum">0.00</span> ₽</p>
+    <button type="submit" class="btn btn-primary">Сохранить сделку</button>
+  </form>
+</div>
+
+<script>
+// обёртка, чтобы не засорять глобал
+(() => {
+  const form = document.getElementById('deal-form');
+  const prefix = '{{ prefix }}';  // "items"
+  const totalFormsInput = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
+
+  // функция пересчёта
+  function recalc() {
+    let qtySum = 0, moneySum = 0;
+    document.querySelectorAll('.deal-item').forEach(div => {
+      const select = div.querySelector('.product-select');
+      const qtyInp = div.querySelector('.quantity-input');
+      const price   = parseFloat(select.options[select.selectedIndex].dataset.price || 0);
+      const qty     = parseInt(qtyInp.value) || 0;
+      qtySum += qty;
+      moneySum += price * qty;
+    });
+    let disc = 0;
+    if (qtySum >= 1000) disc = 0.20;
+    else if (qtySum >= 100) disc = 0.10;
+    else if (qtySum >= 10) disc = 0.05;
+
+    const pay = moneySum * (1 - disc);
+    document.getElementById('total-qty').textContent = qtySum;
+    document.getElementById('discount').textContent  = (disc*100) + '%';
+    document.getElementById('total-sum').textContent = pay.toFixed(2);
+  }
+
+  // слушаем изменение
+  form.addEventListener('change', recalc);
+  recalc();
+
+  // добавление новой строки formset
+  document.getElementById('add-item').addEventListener('click', () => {
+    const idx = parseInt(totalFormsInput.value);
+    const row = document.querySelector('.deal-item').cloneNode(true);
+
+    // обнуляем
+    row.querySelector('.quantity-input').value = 1;
+    row.querySelector('.product-select').selectedIndex = 0;
+
+    // заменяем индексы в именах и id
+    row.innerHTML = row.innerHTML
+      .replace(new RegExp(`-${0}-`, 'g'), `-${idx}-`)
+      .replace(new RegExp(`_${0}_`, 'g'), `_${idx}_`);
+    totalFormsInput.value = idx + 1;
+    document.getElementById('items').append(row);
+    recalc();
+  });
+})();
+</script>
+{% endblock %}

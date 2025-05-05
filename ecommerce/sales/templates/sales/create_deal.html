@@ -1,0 +1,82 @@
+<!-- sales/create_deal.html -->
+{% extends 'sales/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Создать сделку</h2>
+
+    <form method="POST" class="bg-light p-4 rounded shadow-sm" id="deal-form">
+        {% csrf_token %}
+        
+        <div class="form-group mb-3">
+            <label for="id_customer" class="form-label">Клиент</label>
+            {{ deal_form.customer }}
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="id_date" class="form-label">Дата</label>
+            {{ deal_form.date }}
+        </div>
+
+        <h3>Выберите товары</h3>
+        <div id="product-list">
+            {{ formset.management_form }}
+            {% for form in formset %}
+            <div class="mb-3 product-item">
+                <label for="id_product_{{ form.instance.id }}" class="form-label">Товар</label>
+                {{ form.product }}
+
+                <label for="id_quantity_{{ form.instance.id }}" class="form-label">Количество</label>
+                {{ form.quantity }}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="id_total_price" class="form-label">Общая цена</label>
+            <input type="text" class="form-control" id="id_total_price" name="total_price" value="0" disabled />
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="id_discount" class="form-label">Скидка</label>
+            <input type="text" class="form-control" id="id_discount" name="discount" value="0" disabled />
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg w-100">Создать сделку</button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const formset = document.getElementById('deal-form');
+    formset.addEventListener('change', updateTotalPrice);
+
+    function updateTotalPrice() {
+        let totalPrice = 0;
+        let discount = 0;
+
+        // Проходим по всем товарным элементам
+        const productItems = document.querySelectorAll('.product-item');
+        productItems.forEach(function(item) {
+            const quantity = item.querySelector('input[type="number"]').value;
+            const productPrice = parseFloat(item.querySelector('select').options[item.querySelector('select').selectedIndex].dataset.price);
+
+            if (quantity && productPrice) {
+                totalPrice += productPrice * quantity;
+
+                // Применение скидки на определенное количество товаров
+                if (quantity >= 5) {
+                    discount += 0.10; // Скидка 10%
+                }
+            }
+        });
+
+        // Применяем скидку
+        const discountedPrice = totalPrice * (1 - discount);
+        document.getElementById('id_total_price').value = discountedPrice.toFixed(2);
+        document.getElementById('id_discount').value = (discount * 100).toFixed(2) + '%';
+    }
+});
+</script>
+
+{% endblock %}

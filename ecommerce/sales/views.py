@@ -1,5 +1,8 @@
+from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from .models import Product, Customer, Deal, DealItem
+from .forms import DealForm, DealItemFormSet
+from django.shortcuts import redirect
 
 def product_list(request):
     products = Product.objects.all()
@@ -9,36 +12,37 @@ def customer_list(request):
     customers = Customer.objects.all()
     return render(request, 'sales/customer_list.html', {'customers': customers})
 
-from django.shortcuts import render, redirect
-from .forms import DealForm
+def deal_list(request):
+    deals = Deal.objects.prefetch_related('items__product')
+    return render(request, 'sales/deal_list.html', {'deals': deals})
 
+def deal_detail(request, pk):
+    deal = get_object_or_404(Deal, pk=pk)
+    return render(request, 'sales/deal_detail.html', {'deal': deal})
 
-def create_deal(request):
+def deal_create(request):
+    prefix = 'items'
     if request.method == 'POST':
-        form = DealForm(request.POST)
-        if form.is_valid():
-            deal = form.save(commit=False)
-            deal.save()
-
-            # Обработка товаров
-            product = form.cleaned_data['product']
-            quantity = form.cleaned_data['quantity']
-            DealItem.objects.create(deal=deal, product=product, quantity=quantity)
-
-            return redirect('deal_list')
+        form    = DealForm(request.POST)
+        formset = DealItemFormSet(request.POST, prefix=prefix)
+        if form.is_valid() and formset.is_valid():
+            deal = form.save()
+            formset.instance = deal
+            formset.save()
+            return redirect('sales:deal_detail', pk=deal.pk)
     else:
-        form = DealForm()
-    return render(request, 'sales/deal_create.html', {'form': form})
+        form    = DealForm()
+        formset = DealItemFormSet(prefix=prefix)
+    return render(request, 'sales/deal_form.html', {
+        'form': form,
+        'formset': formset,
+        'prefix': prefix,
+    })
 
 def index(request):
     """Главная страница"""
     return render(request, 'sales/index.html')
-def deal_list(request):
-    deals = Deal.objects.all()
-    return render(request, 'sales/deal_list.html', {'deals': deals})
-def deal_detail(request, pk):
-    deal = get_object_or_404(Deal, pk=pk)
-    return render(request, 'sales/deal_detail.html', {'deal': deal})
+
 
 from rest_framework import generics
 from .models import Deal
@@ -68,3 +72,13 @@ class DealCreateView(generics.CreateAPIView):
     serializer_class = DealSerializer
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+from .forms import CustomerForm
+def add_customer(request):
+    if request.method == 'POST':
+        form = CustomerForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('sales:customer_list')
+    else:
+        form = CustomerForm()
+    return render(request, 'sales/add_customer.html', {'form': form})

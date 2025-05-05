@@ -2,15 +2,36 @@
 from django import forms
 from .models import Deal, DealItem, Customer, Product
 
+from django import forms
+from django.forms import modelformset_factory
+from .models import Deal, Product
+from django.forms.models import inlineformset_factory
+
+
 class DealForm(forms.ModelForm):
     class Meta:
-        model = Deal
-        fields = ['customer', 'is_wholesale', 'discount']
+        model  = Deal
+        fields = ['customer']
+        widgets = {
+            'customer': forms.Select(attrs={'class': 'form-select'}),
+        }
 
-    # Динамические поля для товаров
-    product = forms.ModelChoiceField(queryset=Product.objects.all(), required=True)
-    quantity = forms.IntegerField(min_value=1, initial=1)
+class DealItemForm(forms.ModelForm):
+    class Meta:
+        model  = DealItem
+        fields = ['product', 'quantity']
+        widgets = {
+            'product': forms.Select(attrs={'class': 'form-select product-select'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control quantity-input', 'min': 1}),
+        }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['customer'].queryset = Customer.objects.all()
+DealItemFormSet = inlineformset_factory(
+    Deal, DealItem,
+    form=DealItemForm,
+    extra=1, can_delete=True
+)
+class CustomerForm(forms.ModelForm):
+    class Meta:
+        model = Customer
+        fields = ['name', 'address', 'phone', 'contact_person'] 
+        

@@ -5,10 +5,8 @@ class DealItemInline(admin.TabularInline):
     model = DealItem
     extra = 1
 
-@admin.register(Deal)
 class DealAdmin(admin.ModelAdmin):
-    inlines = [DealItemInline]
-    list_display = ('date', 'customer', 'total')
+    list_display = ('customer', 'total_price', 'created_at')
 
 admin.site.register(Product)
 admin.site.register(Customer)
@@ -18,3 +16,5 @@ from rest_framework.authtoken.models import Token
 class TokenAdmin(admin.ModelAdmin):
     list_display = ('key', 'user', 'created')
     fields = ('user',)
+
+
