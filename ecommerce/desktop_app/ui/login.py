@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
-from api_client import APIClient
+
 class LoginDialog(QDialog):
-    def __init__(self, api: APIClient):
+    def __init__(self, api):
         super().__init__()
         self.api = api
         self.setWindowTitle("Авторизация")

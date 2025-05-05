@@ -39,13 +39,7 @@ class DealSerializer(serializers.ModelSerializer):
         model = Deal
         fields = '__all__'
 
-    
 
-    
-
-
-    
-    
     
 class DealCreateSerializer(serializers.ModelSerializer):
     items = DealItemSerializer(many=True)

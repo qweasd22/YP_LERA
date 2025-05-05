@@ -1,36 +1,44 @@
 from PyQt6.QtWidgets import QDialog, QFormLayout, QLineEdit, QPushButton, QMessageBox
-from api_client import APIClient
 
 class NewProductDialog(QDialog):
-    def __init__(self, api: APIClient):
+    def __init__(self, api):
         super().__init__()
         self.api = api
-        self.setWindowTitle("Новый товар")
+        self.setWindowTitle("Создать новый товар")
+
         form = QFormLayout(self)
 
-        self.name = QLineEdit(); form.addRow("Наименование:", self.name)
-        self.price = QLineEdit(); form.addRow("Цена:", self.price)
+        self.name_field = QLineEdit()
+        form.addRow("Наименование:", self.name_field)
 
-        btn = QPushButton("Создать")
-        btn.clicked.connect(self._save)
-        form.addRow(btn)
+        self.price_field = QLineEdit()
+        self.price_field.setPlaceholderText("Например: 199.99")
+        form.addRow("Цена (₽):", self.price_field)
 
-    def _save(self):
-        try:
-            name = self.name.text().strip()
-            price = float(self.price.text())
-            if not name:
-                raise ValueError("Пустое название")
-        except Exception:
-            QMessageBox.warning(self, "Ошибка", "Пожалуйста, введите корректные данные")
+        self.submit_btn = QPushButton("Создать")
+        self.submit_btn.clicked.connect(self._on_submit)
+        form.addRow(self.submit_btn)
+
+    def _on_submit(self):
+        name = self.name_field.text().strip()
+        price_text = self.price_field.text().strip()
+
+        if not name:
+            QMessageBox.warning(self, "Ошибка", "Наименование не может быть пустым.")
             return
-        data = {
-            "name": name,
-            "price": price
-        }
-        res = self.api.create_product(data)
-        if res:
-            QMessageBox.information(self, "Успех", "Товар создан!")
+
+        try:
+            price = float(price_text)
+            if price < 0:
+                raise ValueError()
+        except ValueError:
+            QMessageBox.warning(self, "Ошибка", "Введите корректную цену (число ≥ 0).")
+            return
+
+        data = {"name": name, "price": price}
+        result = self.api.create_product(data)
+        if result:
+            QMessageBox.information(self, "Успех", "Товар успешно создан.")
             self.accept()
         else:
-            QMessageBox.critical(self, "Ошибка", "Не удалось создать товар")
+            QMessageBox.critical(self, "Ошибка", "Не удалось создать товар на сервере.")

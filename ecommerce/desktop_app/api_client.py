@@ -60,17 +60,19 @@ class APIClient:
             return False
 
     # Products
-    def get_products(self):   return self._get("products/")
-    def create_product(self, data): return self._post("products/", data)
-    def update_product(self, pk, data): return self._put("products/", pk, data)
-    def delete_product(self, pk): return self._delete("products/", pk)
+    def get_products(self):        return self._get("products/")
+    def create_product(self, d):   return self._post("products/", d)
+    def update_product(self, pk, d): return self._put("products/", pk, d)
+    def delete_product(self, pk):  return self._delete("products/", pk)
 
     # Customers
-    def get_customers(self):   return self._get("customers/")
-    def create_customer(self, data): return self._post("customers/", data)
-    def update_customer(self, pk, data): return self._put("customers/", pk, data)
-    def delete_customer(self, pk): return self._delete("customers/", pk)
+    def get_customers(self):        return self._get("customers/")
+    def create_customer(self, d):   return self._post("customers/", d)
+    def update_customer(self, pk, d): return self._put("customers/", pk, d)
+    def delete_customer(self, pk):  return self._delete("customers/", pk)
 
     # Deals
-    def get_deals(self):   return self._get("deals/")
-    def create_deal(self, data): return self._post("deals/", data)
+    def get_deals(self):            return self._get("deals/")
+    def create_deal(self, d):       return self._post("deals/", d)
+    def update_deal(self, pk, d):   return self._put("deals/", pk, d)
+    def delete_deal(self, pk):      return self._delete("deals/", pk)
